@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_transport_public_booking" model="ir.actions.act_url">
+        <field name="name">Réserver un billet</field>
+        <field name="url">/reserver-un-billet</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_transport_root" name="Transport" sequence="25"
+              groups="transport.group_transport_dispatcher,transport.group_transport_manager"/>
+
+    <menuitem id="menu_transport_ops" name="Exploitation" parent="menu_transport_root" sequence="10"/>
+
+    <menuitem id="menu_transport_departure" name="Départs" parent="menu_transport_ops"
+              action="action_transport_departure" sequence="10"/>
+    <menuitem id="menu_transport_departure_today" name="Aujourd'hui" parent="menu_transport_departure"
+              action="action_transport_departure" sequence="1"/>
+    <menuitem id="menu_transport_departure_upcoming" name="À venir" parent="menu_transport_departure"
+              action="action_transport_departure_upcoming" sequence="2"/>
+    <menuitem id="menu_transport_departure_archive" name="Archivés" parent="menu_transport_departure"
+              action="action_transport_departure_archive" sequence="3"/>
+    <menuitem id="menu_transport_generate" name="Générer les départs" parent="menu_transport_ops"
+              action="action_transport_departure_generate" sequence="15"/>
+    <menuitem id="menu_transport_close_day" name="Fermer une journée" parent="menu_transport_ops"
+              action="action_transport_departure_close" sequence="16"/>
+    <menuitem id="menu_transport_insight" name="Statistiques" parent="menu_transport_ops"
+              action="action_transport_insight" sequence="17"/>
+    <menuitem id="menu_transport_public_booking" name="Réserver un billet" parent="menu_transport_ops"
+              action="action_transport_public_booking" sequence="18"/>
+    <menuitem id="menu_transport_booking" name="Réservations" parent="menu_transport_ops"
+              action="action_transport_booking" sequence="20"/>
+    <menuitem id="menu_transport_ticket" name="Billets" parent="menu_transport_ops"
+              action="action_transport_ticket" sequence="30"/>
+
+    <menuitem id="menu_transport_sales" name="Entreprises" parent="menu_transport_root" sequence="20"/>
+    <menuitem id="menu_transport_contract" name="Contrats" parent="menu_transport_sales"
+              action="action_transport_contract" sequence="10"
+              groups="transport.group_transport_manager"/>
+    <menuitem id="menu_transport_statement" name="Relevé mensuel" parent="menu_transport_sales"
+              action="action_transport_contract_statement" sequence="15"/>
+    <menuitem id="menu_transport_subscriber" name="Abonnés" parent="menu_transport_sales"
+              action="action_transport_subscriber" sequence="20"/>
+
+    <menuitem id="menu_transport_config" name="Configuration" parent="menu_transport_root"
+              groups="transport.group_transport_manager" sequence="90"/>
+    <menuitem id="menu_transport_line" name="Lignes" parent="menu_transport_config"
+              action="action_transport_line" sequence="10"/>
+    <menuitem id="menu_transport_schedule" name="Horaires" parent="menu_transport_config"
+              action="action_transport_schedule" sequence="20"/>
+    <menuitem id="menu_transport_stop" name="Arrêts" parent="menu_transport_config"
+              action="action_transport_stop" sequence="30"/>
+    <menuitem id="menu_transport_driver_document" name="Habilitations" parent="menu_transport_config"
+              action="action_transport_driver_document" sequence="40"/>
+    <menuitem id="menu_transport_driver_route" name="Itinéraires chauffeurs" parent="menu_transport_config"
+              action="action_transport_driver_route" sequence="45"/>
+    <menuitem id="menu_transport_check_template" name="Points de contrôle" parent="menu_transport_config"
+              action="action_transport_check_template" sequence="50"/>
+</odoo>

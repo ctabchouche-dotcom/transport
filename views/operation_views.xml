@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_transport_contract_list" model="ir.ui.view">
+        <field name="name">transport.contract.list</field>
+        <field name="model">transport.contract</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="seat_quota"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_transport_contract_form" model="ir.ui.view">
+        <field name="name">transport.contract.form</field>
+        <field name="model">transport.contract</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open" type="object" string="Ouvrir" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_open_statement" type="object" string="Relevé"/>
+                    <button name="action_close" type="object" string="Clôturer" invisible="state != 'open'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,open,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="line_ids" widget="many2many_tags" readonly="state == 'closed'"/>
+                        </group>
+                        <group>
+                            <field name="date_start" readonly="state != 'draft'"/>
+                            <field name="date_end" readonly="state == 'closed'"/>
+                            <field name="seat_quota" readonly="state == 'closed'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Abonnés">
+                            <field name="subscriber_ids" readonly="state == 'closed'">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_transport_contract" model="ir.actions.act_window">
+        <field name="name">Contrats entreprise</field>
+        <field name="res_model">transport.contract</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_transport_subscriber_list" model="ir.ui.view">
+        <field name="name">transport.subscriber.list</field>
+        <field name="model">transport.subscriber</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="contract_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_transport_subscriber_form" model="ir.ui.view">
+        <field name="name">transport.subscriber.form</field>
+        <field name="model">transport.subscriber</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <field name="contract_id"/>
+                        <field name="partner_id"/>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_transport_subscriber" model="ir.actions.act_window">
+        <field name="name">Abonnés</field>
+        <field name="res_model">transport.subscriber</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_transport_driver_document_list" model="ir.ui.view">
+        <field name="name">transport.driver.document.list</field>
+        <field name="model">transport.driver.document</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="employee_id"/>
+                <field name="doc_type"/>
+                <field name="reference"/>
+                <field name="expires_on"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_transport_driver_document" model="ir.actions.act_window">
+        <field name="name">Habilitations</field>
+        <field name="res_model">transport.driver.document</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="view_transport_check_template_list" model="ir.ui.view">
+        <field name="name">transport.check.template.list</field>
+        <field name="model">transport.check.template</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="critical"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_transport_check_template" model="ir.actions.act_window">
+        <field name="name">Points de contrôle</field>
+        <field name="res_model">transport.check.template</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="view_transport_ticket_list" model="ir.ui.view">
+        <field name="name">transport.ticket.list</field>
+        <field name="model">transport.ticket</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="name"/>
+                <field name="booking_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_transport_ticket_form" model="ir.ui.view">
+        <field name="name">transport.ticket.form</field>
+        <field name="model">transport.ticket</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="booking_id"/>
+                        <field name="state"/>
+                        <field name="qr_payload"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_transport_ticket" model="ir.actions.act_window">
+        <field name="name">Billets</field>
+        <field name="res_model">transport.ticket</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,193 @@
+:root {
+    --ink: #16332f;
+    --line: #d5e2dc;
+    --paper: #f3f7f5;
+    --card: #fffcf8;
+    --accent: #0c6e68;
+    --accent-dark: #084e4a;
+    --danger: #8d3d3d;
+    --shadow: 0 10px 30px rgba(22, 51, 47, 0.08);
+    color: var(--ink);
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+.book-body { background: var(--paper); }
+.book-wrap { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+.book-hero h1, .book-done h1 { margin: 0 0 8px; font-size: 2rem; }
+.book-kicker { margin: 0 0 8px; color: var(--accent); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.8rem; }
+.book-card { display: grid; gap: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.book-card h2 { margin: 0; font-size: 1.15rem; }
+.book-card label { display: grid; gap: 6px; font-weight: 600; }
+.book-card input, .book-card select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.book-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.book-error { margin: 0; padding: 10px 12px; border-radius: 10px; background: #f8e8e8; color: var(--danger); }
+.book-ok { margin: 0; padding: 10px 12px; border-radius: 10px; background: #e5f4ef; color: var(--accent-dark); }
+.scan-video { width: 100%; max-height: 360px; background: #111; border-radius: 12px; object-fit: cover; }
+.book-empty { margin: 0; }
+.book-amount { margin: 0; font-size: 1.25rem; }
+.book-submit { border: 0; border-radius: 999px; padding: 12px 18px; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; text-align: center; }
+.book-cancel { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+.book-link { display: inline-block; text-decoration: none; }
+.book-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.book-choice { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; text-decoration: none; color: inherit; }
+.book-choice.is-active { border-color: var(--accent); background: #e7f4f2; }
+.book-choice input { width: auto; }
+
+.book-card .bus-wrap { display: grid; gap: 12px; justify-items: center; }
+.book-card .bus {
+    position: relative;
+    width: max-content;
+    max-width: 100%;
+    margin: 8px auto 4px;
+    padding: 18px 16px 14px;
+    background: linear-gradient(#e7f3f1, #ffffff 28%);
+    border: 4px solid #16332f;
+    border-radius: 150px 150px 22px 22px;
+    box-shadow: inset 0 0 0 7px #fff;
+}
+.book-card .bus.is-minibus {
+    border-radius: 46px 46px 16px 16px;
+    background: linear-gradient(#efe7d6, #ffffff 22%);
+}
+.book-card .bus.is-midibus { border-radius: 90px 90px 18px 18px; }
+.book-card .bus-caption { margin: 0; font-size: 0.9rem; font-weight: 700; text-align: center; }
+.book-card .bus-wheels span {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 3px solid #8d8d8d;
+    border-radius: 50%;
+    background: #1c1c1c;
+}
+.book-card .bus-wheels span:nth-child(1) { left: -12px; top: 86px; }
+.book-card .bus-wheels span:nth-child(2) { right: -12px; top: 86px; }
+.book-card .bus-wheels span:nth-child(3) { left: -12px; bottom: 36px; }
+.book-card .bus-wheels span:nth-child(4) { right: -12px; bottom: 36px; }
+.book-card .bus-front {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin: 10px 10px 18px;
+}
+.book-card .bus-driver,
+.book-card .bus-windshield {
+    width: 78px;
+    height: 48px;
+    border: 2px solid #16332f;
+    display: grid;
+    place-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.book-card .bus-driver { border-radius: 12px; background: #d5e3df; }
+.book-card .bus-windshield { border-radius: 18px 18px 6px 6px; background: #d5eef8; }
+.book-card .bus-row {
+    display: grid;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.book-card .bus-row.is-pair { grid-template-columns: 54px 54px 22px 54px 54px; }
+.book-card .bus-row.is-pair21 { grid-template-columns: 54px 54px 22px 54px; }
+.book-card .bus-row.is-door,
+.book-card .bus-row.is-rear2 { grid-template-columns: 54px 54px 22px 116px; }
+.book-card .bus-row.is-bench { display: flex; }
+.book-card .bus-door,
+.book-card .bus-trunk {
+    display: grid;
+    place-items: center;
+    min-height: 48px;
+    border: 2px solid #16332f;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.book-card .bus-door {
+    background: repeating-linear-gradient(#d5eef8, #d5eef8 7px, #fff 7px, #fff 11px);
+}
+.book-card .bus-front .bus-door { width: 78px; }
+.book-card .bus-trunk { background: #d7d1c5; }
+.book-card .bus-aisle { align-self: center; height: 8px; border-radius: 99px; background: #d5e2dc; }
+.book-card label.bus-seat,
+.book-card span.bus-seat {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 48px;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    border-radius: 14px 14px 8px 8px;
+    border: 2px solid var(--accent);
+    background: #fff;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    box-shadow: inset 0 10px 0 rgba(12, 110, 104, 0.18);
+}
+.book-card label.bus-seat input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.book-card .bus-row.is-bench .bus-seat { width: 46px; }
+.book-card label.bus-seat:has(input:checked) {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent-dark);
+    box-shadow: inset 0 10px 0 rgba(255, 255, 255, 0.25);
+}
+.book-card span.bus-seat.is-taken {
+    background: #ececec;
+    border-color: #bdbdbd;
+    color: #8a8a8a;
+    cursor: not-allowed;
+    box-shadow: inset 0 10px 0 rgba(0, 0, 0, 0.06);
+}
+.book-card span.bus-seat.is-empty { visibility: hidden; }
+.book-card .bus-rear {
+    text-align: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 8px;
+}
+.book-card .bus-legend { display: flex; justify-content: center; gap: 14px; font-size: 0.85rem; }
+.book-card .bus-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    vertical-align: -2px;
+    border-radius: 4px 4px 2px 2px;
+    border: 2px solid var(--accent);
+    background: #fff;
+}
+.book-card .bus-swatch.is-chosen { background: var(--accent); }
+.book-card .bus-swatch.is-taken { background: #ececec; border-color: #bdbdbd; }
+
+@media (max-width: 640px) {
+    .book-row { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="fleet_vehicle_view_form_seat_layout" model="ir.ui.view">
+        <field name="name">fleet.vehicle.form.seat.layout</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <field name="seats" position="after">
+                <field name="bus_size"/>
+                <field name="seat_layout"/>
+                <field name="transport_device_token"/>
+                <field name="device_position_url"/>
+                <field name="device_scan_url"/>
+                <field name="last_tracked_at"/>
+                <field name="last_latitude" invisible="not last_tracked_at"/>
+                <field name="last_longitude" invisible="not last_tracked_at"/>
+            </field>
+        </field>
+    </record>
+</odoo>

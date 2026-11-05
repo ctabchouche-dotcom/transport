@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_transport_booking_list" model="ir.ui.view">
+        <field name="name">transport.booking.list</field>
+        <field name="model">transport.booking</field>
+        <field name="arch" type="xml">
+            <list string="Réservations">
+                <field name="name"/>
+                <field name="departure_id"/>
+                <field name="passenger_name"/>
+                <field name="channel"/>
+                <field name="origin_stop_id"/>
+                <field name="destination_stop_id"/>
+                <field name="seat_count"/>
+                <field name="hold_until"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'held'"
+                       decoration-success="state == 'confirmed'"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_transport_booking_form" model="ir.ui.view">
+        <field name="name">transport.booking.form</field>
+        <field name="model">transport.booking</field>
+        <field name="arch" type="xml">
+            <form string="Réservation">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirmer" class="oe_highlight"
+                            invisible="state != 'held' or channel != 'b2b'"/>
+                    <button name="action_open_collect" type="object" string="Encaisser" class="oe_highlight"
+                            invisible="channel != 'b2c' or paid or state not in ('held', 'confirmed')"/>
+                    <button name="action_print_receipt" type="object" string="Télécharger le reçu"
+                            invisible="not paid"/>
+                    <button name="action_board" type="object" string="Embarquer" class="oe_highlight"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_noshow" type="object" string="No-show"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_open_rebook" type="object" string="Reporter"
+                            invisible="state not in ('held', 'confirmed')"/>
+                    <button name="action_cancel" type="object" string="Annuler"
+                            invisible="state not in ('held', 'confirmed')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="held,confirmed,boarded"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="departure_id" readonly="id" options="{'no_create': True}"/>
+                            <field name="allowed_stop_ids" invisible="1"/>
+                            <field name="channel" readonly="id"/>
+                            <field name="line_id" invisible="1"/>
+                            <field name="subscriber_id" invisible="channel != 'b2b'" readonly="id"
+                                   domain="[('contract_id.state', '=', 'open'), ('contract_id.line_ids', 'in', line_id)]"/>
+                            <field name="seat_count" readonly="id"/>
+                            <field name="seat_label"/>
+                            <field name="seat_ids" readonly="state not in ('held', 'confirmed')">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="number" readonly="1"/>
+                                    <field name="passenger_name"/>
+                                </list>
+                            </field>
+                            <field name="hold_until"/>
+                        </group>
+                        <group>
+                            <field name="passenger_name" readonly="state != 'held'"/>
+                            <field name="phone" readonly="1"/>
+                            <field name="partner_id" readonly="state == 'cancelled'"/>
+                            <field name="origin_stop_id" readonly="id"
+                                   domain="[('id', 'in', allowed_stop_ids)]" options="{'no_create': True}"/>
+                            <field name="destination_stop_id" readonly="id"
+                                   domain="[('id', 'in', allowed_stop_ids)]" options="{'no_create': True}"/>
+                            <field name="ticket_id"/>
+                            <field name="amount_total" invisible="not amount_total"/>
+                            <field name="payment_method" invisible="not paid"/>
+                            <field name="payment_reference" invisible="not paid"/>
+                            <field name="refund_amount" invisible="not refund_amount"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_transport_booking_search" model="ir.ui.view">
+        <field name="name">transport.booking.search</field>
+        <field name="model">transport.booking</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="passenger_name"/>
+                <field name="departure_id"/>
+                <filter name="held" string="En attente" domain="[('state', '=', 'held')]"/>
+                <filter name="confirmed" string="Confirmées" domain="[('state', '=', 'confirmed')]"/>
+                <separator/>
+                <filter name="b2c" string="Billets individuels" domain="[('channel', '=', 'b2c')]"/>
+                <filter name="b2b" string="Abonnés" domain="[('channel', '=', 'b2b')]"/>
+                <filter name="group_departure" string="Départ" context="{'group_by': 'departure_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_transport_booking" model="ir.actions.act_window">
+        <field name="name">Réservations</field>
+        <field name="res_model">transport.booking</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_confirmed': 1, 'search_default_held': 1}</field>
+    </record>
+</odoo>

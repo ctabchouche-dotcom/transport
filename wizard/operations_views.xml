@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_transport_departure_delay_form" model="ir.ui.view">
+        <field name="name">transport.departure.delay.form</field>
+        <field name="model">transport.departure.delay</field>
+        <field name="arch" type="xml">
+            <form string="Retard">
+                <group>
+                    <field name="departure_id" invisible="1"/>
+                    <field name="delay_minutes"/>
+                    <field name="reason"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Annoncer" class="btn-primary"/>
+                    <button string="Fermer" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_transport_departure_swap_form" model="ir.ui.view">
+        <field name="name">transport.departure.swap.form</field>
+        <field name="model">transport.departure.swap</field>
+        <field name="arch" type="xml">
+            <form string="Remplacer le bus">
+                <group>
+                    <field name="departure_id" invisible="1"/>
+                    <field name="vehicle_id" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Remplacer" class="btn-primary"/>
+                    <button string="Fermer" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_transport_booking_collect_form" model="ir.ui.view">
+        <field name="name">transport.booking.collect.form</field>
+        <field name="model">transport.booking.collect</field>
+        <field name="arch" type="xml">
+            <form string="Encaisser">
+                <group>
+                    <field name="booking_id" invisible="1"/>
+                    <field name="passenger_name"/>
+                    <field name="seat_label"/>
+                    <field name="amount"/>
+                    <field name="method" widget="radio"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Encaisser et télécharger le reçu" class="btn-primary"/>
+                    <button string="Fermer" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_transport_departure_close_form" model="ir.ui.view">
+        <field name="name">transport.departure.close.form</field>
+        <field name="model">transport.departure.close</field>
+        <field name="arch" type="xml">
+            <form string="Fermer une journée">
+                <group>
+                    <field name="line_id" options="{'no_create': True}"/>
+                    <field name="service_date"/>
+                    <field name="reason"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Fermer" class="btn-primary"/>
+                    <button string="Annuler" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_transport_departure_close" model="ir.actions.act_window">
+        <field name="name">Fermer une journée</field>
+        <field name="res_model">transport.departure.close</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_transport_booking_rebook_form" model="ir.ui.view">
+        <field name="name">transport.booking.rebook.form</field>
+        <field name="model">transport.booking.rebook</field>
+        <field name="arch" type="xml">
+            <form string="Reporter le billet">
+                <group>
+                    <field name="booking_id" invisible="1"/>
+                    <field name="line_id" invisible="1"/>
+                    <field name="source_departure_id" invisible="1"/>
+                    <field name="departure_id" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Reporter" class="btn-primary"/>
+                    <button string="Fermer" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_transport_contract_statement_form" model="ir.ui.view">
+        <field name="name">transport.contract.statement.form</field>
+        <field name="model">transport.contract.statement</field>
+        <field name="arch" type="xml">
+            <form string="Relevé entreprise">
+                <group>
+                    <field name="partner_id" options="{'no_create': True}"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                </group>
+                <footer>
+                    <button name="action_print" type="object" string="Imprimer le relevé" class="btn-primary"/>
+                    <button string="Fermer" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_transport_contract_statement" model="ir.actions.act_window">
+        <field name="name">Relevé mensuel</field>
+        <field name="res_model">transport.contract.statement</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_transport_insight_form" model="ir.ui.view">
+        <field name="name">transport.insight.form</field>
+        <field name="model">transport.insight</field>
+        <field name="arch" type="xml">
+            <form string="Statistiques">
+                <group>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="amount_collected"/>
+                    <field name="amount_cost"/>
+                    <field name="amount_profit"/>
+                </group>
+                <p>Les propositions lisent les billets, la liste d'attente et la marge. Elles ne créent pas une ligne qui n'a jamais été vendue.</p>
+                <field name="line_ids" readonly="1">
+                    <list>
+                        <field name="line_id"/>
+                        <field name="departures"/>
+                        <field name="seats_sold"/>
+                        <field name="seats_offered"/>
+                        <field name="fill_percent"/>
+                        <field name="waiting"/>
+                        <field name="margin"/>
+                        <field name="top_trip"/>
+                    </list>
+                </field>
+                <field name="advice_ids" readonly="1">
+                    <list>
+                        <field name="kind"/>
+                        <field name="summary"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_compute" type="object" string="Calculer" class="btn-primary"/>
+                    <button string="Fermer" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_transport_insight" model="ir.actions.act_window">
+        <field name="name">Statistiques</field>
+        <field name="res_model">transport.insight</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

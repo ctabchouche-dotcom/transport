@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_transport_line_list" model="ir.ui.view">
+        <field name="name">transport.line.list</field>
+        <field name="model">transport.line</field>
+        <field name="arch" type="xml">
+            <list string="Lignes">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="line_type"/>
+                <field name="route_length"/>
+                <field name="distance_km"/>
+                <field name="seat_capacity"/>
+                <field name="b2b_seat_reserve"/>
+                <field name="release_hours"/>
+                <field name="fare"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_transport_line_form" model="ir.ui.view">
+        <field name="name">transport.line.form</field>
+        <field name="model">transport.line</field>
+        <field name="arch" type="xml">
+            <form string="Ligne">
+                <header>
+                    <button name="action_open_generate" type="object" string="Générer les départs" class="oe_highlight"/>
+                    <button name="action_auto_assign_open" type="object" string="Affecter les départs à venir"/>
+                    <button name="action_open_close_day" type="object" string="Fermer une journée"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_departures" type="object" class="oe_stat_button" icon="fa-bus">
+                            <field name="departure_count" widget="statinfo" string="Départs"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archivé" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Alger - Oran"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="line_type"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="seat_capacity"/>
+                            <field name="seat_layout"/>
+                            <field name="b2b_seat_reserve"/>
+                            <field name="release_hours"/>
+                            <field name="average_speed"/>
+                            <field name="distance_km"/>
+                            <field name="route_length"/>
+                            <field name="route_length_force"/>
+                            <field name="drive_hours"/>
+                            <field name="fare"/>
+                            <field name="cancel_hours"/>
+                            <field name="refund_percent"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Arrêts" name="stops">
+                            <field name="stop_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="stop_id"/>
+                                    <field name="distance_km"/>
+                                    <field name="boarding"/>
+                                    <field name="alighting"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Tarifs" name="fares">
+                            <field name="fare_ids">
+                                <list editable="bottom">
+                                    <field name="origin_stop_id"/>
+                                    <field name="destination_stop_id"/>
+                                    <field name="price"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Chauffeurs" name="drivers">
+                            <field name="driver_route_ids">
+                                <list editable="bottom">
+                                    <field name="employee_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Horaires" name="schedules">
+                            <field name="schedule_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="time_departure" widget="float_time"/>
+                                    <field name="mon"/>
+                                    <field name="tue"/>
+                                    <field name="wed"/>
+                                    <field name="thu"/>
+                                    <field name="fri"/>
+                                    <field name="sat"/>
+                                    <field name="sun"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_transport_line" model="ir.actions.act_window">
+        <field name="name">Lignes</field>
+        <field name="res_model">transport.line</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_transport_driver_route_list" model="ir.ui.view">
+        <field name="name">transport.driver.route.list</field>
+        <field name="model">transport.driver.route</field>
+        <field name="arch" type="xml">
+            <list string="Itinéraires chauffeurs" editable="bottom">
+                <field name="employee_id"/>
+                <field name="line_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_transport_driver_route" model="ir.actions.act_window">
+        <field name="name">Itinéraires chauffeurs</field>
+        <field name="res_model">transport.driver.route</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

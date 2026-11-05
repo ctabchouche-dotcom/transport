@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="stop_casa" model="transport.stop">
+            <field name="name">Casablanca</field>
+            <field name="code">CASA</field>
+            <field name="city">Casablanca</field>
+        </record>
+        <record id="stop_rabat" model="transport.stop">
+            <field name="name">Rabat</field>
+            <field name="code">RABAT</field>
+            <field name="city">Rabat</field>
+        </record>
+        <record id="stop_kenitra" model="transport.stop">
+            <field name="name">Kénitra</field>
+            <field name="code">KENITRA</field>
+            <field name="city">Kénitra</field>
+        </record>
+        <record id="line_casa_kenitra" model="transport.line">
+            <field name="name">Casablanca - Kénitra</field>
+            <field name="code">CASA-KEN</field>
+            <field name="line_type">hybrid</field>
+            <field name="seat_capacity">49</field>
+            <field name="b2b_seat_reserve">15</field>
+            <field name="release_hours">2</field>
+        </record>
+        <record id="line_casa_kenitra_casa" model="transport.line.stop">
+            <field name="line_id" ref="line_casa_kenitra"/>
+            <field name="stop_id" ref="stop_casa"/>
+            <field name="sequence">10</field>
+            <field name="distance_km">0</field>
+        </record>
+        <record id="line_casa_kenitra_rabat" model="transport.line.stop">
+            <field name="line_id" ref="line_casa_kenitra"/>
+            <field name="stop_id" ref="stop_rabat"/>
+            <field name="sequence">20</field>
+            <field name="distance_km">90</field>
+        </record>
+        <record id="line_casa_kenitra_kenitra" model="transport.line.stop">
+            <field name="line_id" ref="line_casa_kenitra"/>
+            <field name="stop_id" ref="stop_kenitra"/>
+            <field name="sequence">30</field>
+            <field name="distance_km">50</field>
+        </record>
+        <record id="schedule_casa_kenitra_morning" model="transport.schedule">
+            <field name="name">Matin</field>
+            <field name="line_id" ref="line_casa_kenitra"/>
+            <field name="time_departure">8.0</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="tracking_page" name="Suivi GPS">
+        <t t-call="web.layout">
+            <t t-set="title">Suivi du car</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+                <link rel="stylesheet" href="/transport/static/src/css/booking.css?v=4"/>
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            </t>
+            <div class="book-body">
+                <main class="book-wrap">
+                    <header class="book-hero">
+                        <p class="book-kicker" t-out="company"/>
+                        <h1>Suivi du car</h1>
+                        <p>
+                            <span t-out="departure.line_id.name"/> —
+                            <span t-out="departure.name"/>
+                        </p>
+                    </header>
+                    <section class="book-card">
+                        <p t-if="departure.last_tracked_at">
+                            Dernière position :
+                            <strong t-out="departure.last_latitude"/>,
+                            <strong t-out="departure.last_longitude"/>
+                            <br/>
+                            <span t-field="departure.last_tracked_at"/>
+                        </p>
+                        <p t-else="">Le GPS du bus n'a pas encore envoyé de position.</p>
+                        <div id="bus-map" style="height: 320px; border-radius: 12px;"
+                             t-if="departure.last_tracked_at"/>
+                    </section>
+                </main>
+            </div>
+            <script>
+                (function () {
+                    var mapBox = document.getElementById('bus-map');
+                    var lat = <t t-out="departure.last_latitude or 0"/>;
+                    var lon = <t t-out="departure.last_longitude or 0"/>;
+                    if (mapBox &amp;&amp; window.L &amp;&amp; (lat || lon)) {
+                        var map = L.map(mapBox).setView([lat, lon], 13);
+                        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&amp;copy; OpenStreetMap'
+                        }).addTo(map);
+                        L.marker([lat, lon]).addTo(map);
+                    }
+                })();
+            </script>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_transport_stop_list" model="ir.ui.view">
+        <field name="name">transport.stop.list</field>
+        <field name="model">transport.stop</field>
+        <field name="arch" type="xml">
+            <list string="Arrêts">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="city"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_transport_stop_form" model="ir.ui.view">
+        <field name="name">transport.stop.form</field>
+        <field name="model">transport.stop</field>
+        <field name="arch" type="xml">
+            <form string="Arrêt">
+                <sheet>
+                    <widget name="web_ribbon" title="Archivé" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Alger"/></h1>
+                    </div>
+                    <group>
+                        <field name="code"/>
+                        <field name="city"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_transport_stop" model="ir.actions.act_window">
+        <field name="name">Arrêts</field>
+        <field name="res_model">transport.stop</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

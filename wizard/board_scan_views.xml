@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_transport_board_scan_form" model="ir.ui.view">
+        <field name="name">transport.board.scan.form</field>
+        <field name="model">transport.board.scan</field>
+        <field name="arch" type="xml">
+            <form string="Scanner un billet">
+                <group>
+                    <field name="departure_id" readonly="1"/>
+                    <field name="payload" placeholder="TRP:..."/>
+                </group>
+                <footer>
+                    <button name="action_board" type="object" string="Embarquer" class="btn-primary"/>
+                    <button string="Fermer" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

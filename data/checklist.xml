@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="check_tires" model="transport.check.template">
+        <field name="name">Pression des pneus</field>
+        <field name="sequence">10</field>
+        <field name="critical" eval="True"/>
+    </record>
+    <record id="check_oil" model="transport.check.template">
+        <field name="name">Niveaux d'huile</field>
+        <field name="sequence">20</field>
+        <field name="critical" eval="True"/>
+    </record>
+    <record id="check_lights" model="transport.check.template">
+        <field name="name">Feux</field>
+        <field name="sequence">30</field>
+        <field name="critical" eval="True"/>
+    </record>
+    <record id="check_brakes" model="transport.check.template">
+        <field name="name">Système de freinage</field>
+        <field name="sequence">40</field>
+        <field name="critical" eval="True"/>
+    </record>
+</odoo>

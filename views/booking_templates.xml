@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="bus_seat" name="Siège du car">
+        <span t-if="not seat" class="bus-seat is-empty"/>
+        <span t-elif="not seat['free']" class="bus-seat is-taken"><t t-out="seat['number']"/></span>
+        <label t-else="" class="bus-seat">
+            <input type="checkbox" name="seat_number" t-att-value="seat['number']"/>
+            <span t-out="seat['number']"/>
+        </label>
+    </template>
+
+    <template id="booking_page" name="Réserver un billet">
+        <t t-call="web.layout">
+            <t t-set="title">Réserver un billet</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="stylesheet" href="/transport/static/src/css/booking.css?v=4"/>
+                <t t-call-assets="web.assets_frontend" t-js="false"/>
+            </t>
+            <div class="book-body">
+                <main class="book-wrap">
+                    <header class="book-hero">
+                        <p class="book-kicker" t-out="company"/>
+                        <h1>Réserver un billet</h1>
+                        <p>Choisissez une ligne, puis un jour, puis un départ.</p>
+                        <p><a href="/reserver-un-billet/retrouver">Retrouver un billet</a></p>
+                    </header>
+
+                    <section class="book-card" t-if="not lines">
+                        <p>Aucun départ n'est ouvert pour le moment.</p>
+                    </section>
+
+                    <t t-else="">
+                        <section class="book-card">
+                            <h2>Ligne</h2>
+                            <div class="book-choices">
+                                <a t-foreach="lines" t-as="item"
+                                   t-att-href="'/reserver-un-billet?line_id=%s' % item.id"
+                                   t-att-class="'book-choice is-active' if line and item.id == line.id else 'book-choice'">
+                                    <strong t-out="item.name"/>
+                                </a>
+                            </div>
+                        </section>
+
+                        <section class="book-card" t-if="line and fares">
+                            <h2>Tarifs</h2>
+                            <p t-foreach="fares" t-as="fare">
+                                <span t-out="fare['origin']"/> → <span t-out="fare['destination']"/> :
+                                <strong t-out="fare['price']"/>
+                            </p>
+                        </section>
+
+                        <section class="book-card" t-if="line">
+                            <h2>Jour</h2>
+                            <p class="book-empty" t-if="not days">Cette ligne n'a pas de jour ouvert.</p>
+                            <div class="book-choices" t-else="">
+                                <a t-foreach="days" t-as="item"
+                                   t-att-href="'/reserver-un-billet?line_id=%s&amp;day=%s' % (line.id, item['key'])"
+                                   t-att-class="'book-choice is-active' if day and item['key'] == day['key'] else 'book-choice'">
+                                    <strong t-out="item['label']"/>
+                                </a>
+                            </div>
+                        </section>
+
+                        <form t-if="day" class="book-card" action="/reserver-un-billet/envoyer" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <h2>Départ</h2>
+                            <p class="book-error" t-if="error" t-out="error"/>
+                            <div class="book-choices">
+                                <label t-foreach="day['hours']" t-as="hour" class="book-choice">
+                                    <input type="radio" name="departure_id" required="required" t-att-value="hour['id']"
+                                           t-att-checked="str(hour['id']) == str(form.get('departure_id') or day['hours'][0]['id']) or None"/>
+                                    <strong t-out="hour['label']"/>
+                                </label>
+                            </div>
+                            <div class="book-row">
+                                <label>
+                                    Montée
+                                    <select name="origin_stop_id" required="required">
+                                        <option t-foreach="stops" t-as="stop" t-att-value="stop['id']"
+                                                t-att-selected="str(stop['id']) == str(form.get('origin_stop_id') or origin_default) or None"
+                                                t-out="stop['name']"/>
+                                    </select>
+                                </label>
+                                <label>
+                                    Descente
+                                    <select name="destination_stop_id" required="required">
+                                        <option t-foreach="stops" t-as="stop" t-att-value="stop['id']"
+                                                t-att-selected="str(stop['id']) == str(form.get('destination_stop_id') or destination_default) or None"
+                                                t-out="stop['name']"/>
+                                    </select>
+                                </label>
+                            </div>
+                            <div t-if="passages">
+                                <p>Heure de passage estimée. Un retard décale tous les arrêts.</p>
+                                <p t-foreach="passages" t-as="passage">
+                                    <span t-out="passage['name']"/> : <strong t-out="passage['time']"/>
+                                </p>
+                            </div>
+                            <label>
+                                Nom du passager
+                                <input type="text" name="passenger_name" required="required" maxlength="128"
+                                       t-att-value="form.get('passenger_name')"/>
+                            </label>
+                            <div id="seat-names"></div>
+                            <div class="book-row">
+                                <label>
+                                    Téléphone
+                                    <input type="tel" name="phone" required="required" maxlength="32"
+                                           t-att-value="form.get('phone')"/>
+                                </label>
+                                <label>
+                                    E-mail
+                                    <input type="email" name="email" maxlength="128"
+                                           t-att-value="form.get('email')"/>
+                                </label>
+                            </div>
+                            <label>
+                                Places
+                                <input type="number" name="seat_count" min="1" max="8" required="required"
+                                       t-att-value="form.get('seat_count') or '1'"/>
+                            </label>
+                            <div t-if="seat_plan" class="bus-wrap">
+                                <p>Le plan est celui de ce car. Un siège grisé est déjà pris sur votre trajet.</p>
+                                <p class="bus-caption" t-out="seat_plan['title']"/>
+                                <div t-attf-class="bus is-#{seat_plan['kind']}">
+                                    <div class="bus-wheels"><span/><span/><span/><span/></div>
+                                    <div class="bus-front">
+                                        <div class="bus-driver">Chauffeur</div>
+                                        <t t-if="seat_plan['courier']">
+                                            <t t-set="seat" t-value="seat_plan['courier']"/>
+                                            <t t-call="transport.bus_seat"/>
+                                        </t>
+                                        <div t-if="seat_plan['front'] == 'sliding'" class="bus-door">Porte</div>
+                                        <div t-else="" class="bus-windshield">Avant</div>
+                                    </div>
+                                    <div t-foreach="seat_plan['rows']" t-as="row" t-attf-class="bus-row is-#{row['kind']}">
+                                        <t t-if="row['kind'] == 'bench'">
+                                            <t t-foreach="row['seats']" t-as="seat">
+                                                <t t-call="transport.bus_seat"/>
+                                            </t>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-foreach="row['left']" t-as="seat">
+                                                <t t-call="transport.bus_seat"/>
+                                            </t>
+                                            <span class="bus-aisle"/>
+                                            <div t-if="row['kind'] == 'door'" class="bus-door">Porte</div>
+                                            <div t-elif="row['kind'] == 'rear2'" class="bus-trunk">Coffre</div>
+                                            <t t-else="">
+                                                <t t-foreach="row['right']" t-as="seat">
+                                                    <t t-call="transport.bus_seat"/>
+                                                </t>
+                                            </t>
+                                        </t>
+                                    </div>
+                                    <div class="bus-rear">Arrière</div>
+                                </div>
+                                <div class="bus-legend">
+                                    <span><i class="bus-swatch is-free"/> Libre</span>
+                                    <span><i class="bus-swatch is-chosen"/> Choisi</span>
+                                    <span><i class="bus-swatch is-taken"/> Pris</span>
+                                </div>
+                            </div>
+                            <button type="submit" class="book-submit">Continuer vers le paiement</button>
+                            <button t-if="seats_free == 0" type="submit" class="book-submit book-cancel"
+                                    formaction="/reserver-un-billet/attente">Rejoindre la liste d'attente</button>
+                            <p t-if="seats_free == 0">Ce trajet est complet. La liste d'attente ne confirme la place que lorsque vous la prenez.</p>
+                        </form>
+                    </t>
+                </main>
+            </div>
+            <script>
+                (function () {
+                    function go() {
+                        var params = new URLSearchParams(window.location.search);
+                        var dep = document.querySelector('input[name="departure_id"]:checked');
+                        var origin = document.querySelector('[name="origin_stop_id"]');
+                        var destination = document.querySelector('[name="destination_stop_id"]');
+                        if (dep) params.set('departure_id', dep.value);
+                        if (origin) params.set('origin_stop_id', origin.value);
+                        if (destination) params.set('destination_stop_id', destination.value);
+                        window.location = window.location.pathname + '?' + params.toString();
+                    }
+                    document.querySelectorAll('input[name="departure_id"]').forEach(function (radio) {
+                        radio.addEventListener('change', go);
+                    });
+                    ['origin_stop_id', 'destination_stop_id'].forEach(function (name) {
+                        var field = document.querySelector('[name="' + name + '"]');
+                        if (field) field.addEventListener('change', go);
+                    });
+                    document.querySelectorAll('.bus-seat input').forEach(function (input) {
+                        input.addEventListener('change', function () {
+                            var count = document.querySelectorAll('.bus-seat input:checked').length;
+                            var places = document.querySelector('input[name="seat_count"]');
+                            if (places &amp;&amp; count) places.value = String(Math.min(count, 8));
+                            renderNames();
+                        });
+                    });
+                    var places = document.querySelector('input[name="seat_count"]');
+                    if (places) places.addEventListener('input', renderNames);
+                    function renderNames() {
+                        var box = document.getElementById('seat-names');
+                        var field = document.querySelector('input[name="seat_count"]');
+                        if (!box || !field) return;
+                        var count = Math.max(1, Math.min(8, parseInt(field.value, 10) || 1));
+                        var checked = Array.prototype.map.call(
+                            document.querySelectorAll('.bus-seat input:checked'),
+                            function (input) { return input.value; }
+                        );
+                        var kept = Array.prototype.map.call(
+                            box.querySelectorAll('input'),
+                            function (input) { return input.value; }
+                        );
+                        box.innerHTML = '';
+                        for (var index = 1; index &lt; count; index++) {
+                            var label = document.createElement('label');
+                            var title = checked[index]
+                                ? 'Nom du siège ' + checked[index]
+                                : 'Passager ' + (index + 1);
+                            label.appendChild(document.createTextNode(title));
+                            var input = document.createElement('input');
+                            input.type = 'text';
+                            input.name = 'seat_passenger';
+                            input.maxLength = 128;
+                            input.value = kept[index - 1] || '';
+                            label.appendChild(input);
+                            box.appendChild(label);
+                        }
+                    }
+                    renderNames();
+                })();
+            </script>
+        </t>
+    </template>
+
+    <template id="waitlist_done" name="Inscrit en liste d'attente">
+        <t t-call="web.layout">
+            <t t-set="title">Liste d'attente</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="stylesheet" href="/transport/static/src/css/booking.css?v=4"/>
+            </t>
+            <div class="book-body">
+                <main class="book-wrap">
+                    <section class="book-card book-done">
+                        <p class="book-kicker" t-out="company"/>
+                        <h1>Liste d'attente</h1>
+                        <p>
+                            <strong t-out="entry.passenger_name"/>, votre demande
+                            <strong t-out="entry.name"/> est enregistrée pour
+                            <span t-out="entry.seat_count"/> place(s).
+                        </p>
+                        <p t-if="entry.email">Un message partira à <span t-out="entry.email"/> dès qu'une place se libère.</p>
+                        <p>Vous pouvez aussi revenir avec cette référence et votre téléphone sur Retrouver un billet.</p>
+                        <a class="book-submit book-link" href="/reserver-un-billet">Retour</a>
+                    </section>
+                </main>
+            </div>
+        </t>
+    </template>
+
+    <template id="waitlist_offer" name="Prendre la place">
+        <t t-call="web.layout">
+            <t t-set="title">Place proposée</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="stylesheet" href="/transport/static/src/css/booking.css?v=4"/>
+            </t>
+            <div class="book-body">
+                <main class="book-wrap">
+                    <header class="book-hero">
+                        <p class="book-kicker" t-out="company"/>
+                        <h1>Une place s'est libérée</h1>
+                    </header>
+                    <section class="book-card">
+                        <p class="book-error" t-if="error" t-out="error"/>
+                        <p t-if="entry.state == 'offered'">
+                            <strong t-out="entry.passenger_name"/><br/>
+                            <span t-out="entry.departure_id.line_id.name"/><br/>
+                            <span t-out="entry.origin_stop_id.name"/> → <span t-out="entry.destination_stop_id.name"/><br/>
+                            <span t-out="entry.seat_count"/> place(s)<br/>
+                            À prendre avant <span t-field="entry.offer_until"/>.
+                        </p>
+                        <p t-else="">Cette proposition n'est plus ouverte.</p>
+                        <form t-if="entry.state == 'offered'" t-att-action="'/reserver-un-billet/attente/%s/%s' % (entry.id, token)" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="book-submit">Prendre la place</button>
+                        </form>
+                    </section>
+                </main>
+            </div>
+        </t>
+    </template>
+
+    <template id="find_ticket" name="Retrouver un billet">
+        <t t-call="web.layout">
+            <t t-set="title">Retrouver un billet</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="stylesheet" href="/transport/static/src/css/booking.css?v=4"/>
+            </t>
+            <div class="book-body">
+                <main class="book-wrap">
+                    <header class="book-hero">
+                        <p class="book-kicker" t-out="company"/>
+                        <h1>Retrouver un billet</h1>
+                        <p>La référence est sur le reçu. Le téléphone est celui indiqué à la réservation.</p>
+                    </header>
+                    <section class="book-card">
+                        <p class="book-error" t-if="error" t-out="error"/>
+                        <form action="/reserver-un-billet/retrouver" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <label>
+                                Référence
+                                <input type="text" name="reference" required="required" maxlength="64"
+                                       t-att-value="form.get('reference')"/>
+                            </label>
+                            <label>
+                                Téléphone
+                                <input type="tel" name="phone" required="required" maxlength="32"
+                                       t-att-value="form.get('phone')"/>
+                            </label>
+                            <button type="submit" class="book-submit">Ouvrir le billet</button>
+                        </form>
+                        <p><a href="/reserver-un-billet">Réserver un billet</a></p>
+                    </section>
+                </main>
+            </div>
+        </t>
+    </template>
+
+    <template id="booking_done" name="Demande de billet envoyée">
+        <t t-call="web.layout">
+            <t t-set="title">Demande envoyée</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="stylesheet" href="/transport/static/src/css/booking.css?v=4"/>
+            </t>
+            <div class="book-body">
+                <main class="book-wrap">
+                    <section class="book-card book-done">
+                        <p class="book-kicker" t-out="company"/>
+                        <h1>Demande envoyée</h1>
+                        <p>
+                            Le guichet a reçu votre demande <strong t-out="booking.name"/>.
+                            La place du <strong t-out="when"/> sur <strong t-out="booking.line_id.name"/>
+                            est tenue jusqu'à confirmation.
+                        </p>
+                        <p>
+                            <span t-out="booking.origin_stop_id.name"/> → <span t-out="booking.destination_stop_id.name"/>,
+                            <span t-out="booking.seat_count"/> place(s).
+                        </p>
+                        <a class="book-submit book-link" href="/reserver-un-billet">Nouvelle demande</a>
+                    </section>
+                </main>
+            </div>
+        </t>
+    </template>
+    <template id="payment_page" name="Paiement du billet">
+        <t t-call="web.layout">
+            <t t-set="title">Paiement</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="stylesheet" href="/transport/static/src/css/booking.css?v=4"/>
+            </t>
+            <div class="book-body">
+                <main class="book-wrap">
+                    <header class="book-hero">
+                        <p class="book-kicker" t-out="company"/>
+                        <h1>Paiement</h1>
+                        <p>Réglez le billet. Il est confirmé et le reçu se télécharge.</p>
+                    </header>
+                    <section class="book-card">
+                        <p class="book-error" t-if="error" t-out="error"/>
+                        <p t-if="booking.state == 'cancelled'">
+                            La réservation <strong t-out="booking.name"/> est annulée.
+                            <t t-if="booking.refund_amount"> Remboursement : <strong t-out="refund"/>.</t>
+                        </p>
+                        <p>
+                            <strong t-out="booking.passenger_name"/><br/>
+                            <span t-out="booking.line_id.name"/><br/>
+                            <span t-out="when"/><br/>
+                            <t t-foreach="passages" t-as="passage">
+                                <span t-out="passage['name']"/> : <strong t-out="passage['time']"/><br/>
+                            </t>
+                            <span t-out="booking.origin_stop_id.name"/> → <span t-out="booking.destination_stop_id.name"/><br/>
+                            <span t-out="booking.seat_count"/> place(s) × <span t-out="unit"/><br/>
+                            Siège(s) : <strong t-out="booking.seat_detail"/>
+                            <t t-if="booking.paid"><br/>Mode : <span t-out="booking.payment_method_label()"/></t>
+                        </p>
+                        <p class="book-amount" t-if="booking.state != 'cancelled'">À payer : <strong t-out="amount"/></p>
+                        <p t-out="rule"/>
+                        <form t-if="can_pay or can_download" t-att-action="'/reserver-un-billet/paiement/%s/%s' % (booking.id, token)" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="book-submit">
+                                <t t-if="can_pay">Payer et télécharger le reçu</t>
+                                <t t-else="">Télécharger le reçu</t>
+                            </button>
+                        </form>
+                        <form t-if="can_cancel" t-att-action="'/reserver-un-billet/annuler/%s/%s' % (booking.id, token)" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="book-submit book-cancel">Annuler la réservation</button>
+                        </form>
+                    </section>
+                </main>
+            </div>
+        </t>
+    </template>
+</odoo>

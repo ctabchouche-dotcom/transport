@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_statement_document">
+        <div class="page" style="font-family: Arial, Helvetica, sans-serif; color: #1c1c1c;">
+            <t t-call="transport.report_font"/>
+            <t t-set="statement" t-value="doc.statement()"/>
+            <p style="margin: 0; text-transform: uppercase; color: #0c6e68; font-size: 12px;">
+                <span t-out="doc.env.company.name"/>
+            </p>
+            <h2 style="margin: 6px 0 4px;">Relevé entreprise</h2>
+            <p style="margin: 0 0 12px;">
+                <strong t-out="doc.partner_id.name"/><br/>
+                Du <span t-field="doc.date_from"/> au <span t-field="doc.date_to"/>
+            </p>
+            <p t-if="not statement['rows']">Aucun trajet d'abonné sur cette période.</p>
+            <table t-else="" class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Ligne</th>
+                        <th>Abonné</th>
+                        <th>Montée</th>
+                        <th>Descente</th>
+                        <th>Places</th>
+                        <th>Sièges</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="statement['rows']" t-as="row">
+                        <td t-out="row['date']"/>
+                        <td t-out="row['line']"/>
+                        <td t-out="row['name']"/>
+                        <td t-out="row['origin']"/>
+                        <td t-out="row['destination']"/>
+                        <td t-out="row['seats']"/>
+                        <td t-out="row['detail']"/>
+                        <td t-out="row['state']"/>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                Places : <strong t-out="statement['seats']"/><br/>
+                Embarquées : <strong t-out="statement['boarded']"/><br/>
+                Absents : <strong t-out="statement['absent']"/>
+            </p>
+            <p style="font-size: 12px;">Ce relevé décrit les trajets. Ce n'est pas une facture.</p>
+        </div>
+    </template>
+
+    <template id="report_statement">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="transport.report_statement_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_statement" model="ir.actions.report">
+        <field name="name">Relevé entreprise</field>
+        <field name="model">transport.contract.statement</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">transport.report_statement</field>
+        <field name="report_file">transport.report_statement</field>
+        <field name="print_report_name">'Releve_%s' % (object.partner_id.name)</field>
+    </record>
+</odoo>

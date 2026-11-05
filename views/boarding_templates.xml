@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="boarding_page" name="Scanner un billet">
+        <t t-call="web.layout">
+            <t t-set="title">Scanner un billet</t>
+            <t t-set="head">
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="stylesheet" href="/transport/static/src/css/booking.css?v=5"/>
+                <script src="/transport/static/src/js/jsQR.js"></script>
+            </t>
+            <div class="book-body">
+                <main class="book-wrap">
+                    <header class="book-hero">
+                        <p class="book-kicker" t-out="company"/>
+                        <h1>Scanner un billet</h1>
+                        <p>
+                            <span t-out="departure.line_id.name"/> —
+                            <span t-out="departure.name"/>
+                        </p>
+                    </header>
+                    <section class="book-card">
+                        <p class="book-ok" t-if="notice" t-out="notice"/>
+                        <p class="book-error" t-if="error" t-out="error"/>
+                        <video id="scan-video" class="scan-video" autoplay="autoplay" playsinline="playsinline" muted="muted" t-if="scanning"/>
+                        <p id="scan-status" t-if="scanning">Pointez la caméra vers le QR du billet.</p>
+                        <form id="scan-form" t-att-action="'/embarquer/%s' % departure.id" method="post" t-if="scanning">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <label>
+                                QR du billet
+                                <input id="scan-payload" name="payload" placeholder="TRP:..." autocomplete="off"/>
+                            </label>
+                            <button type="submit" class="book-submit">Embarquer</button>
+                        </form>
+                    </section>
+                </main>
+            </div>
+            <script t-if="scanning">
+                (function () {
+                    var video = document.getElementById('scan-video');
+                    var status = document.getElementById('scan-status');
+                    var form = document.getElementById('scan-form');
+                    var payload = document.getElementById('scan-payload');
+                    var sent = false;
+
+                    function submit(text) {
+                        text = (text || '').trim();
+                        if (sent || text.indexOf('TRP:') !== 0) {
+                            return;
+                        }
+                        sent = true;
+                        payload.value = text;
+                        status.textContent = 'Lecture en cours…';
+                        if (video.srcObject) {
+                            video.srcObject.getTracks().forEach(function (track) { track.stop(); });
+                        }
+                        form.submit();
+                    }
+
+                    payload.focus();
+                    payload.addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            submit(payload.value);
+                        }
+                    });
+
+                    if (!navigator.mediaDevices || !window.isSecureContext) {
+                        status.textContent = 'La caméra ne s’ouvre qu’en https:// ou sur localhost. Le champ accepte une douchette.';
+                        return;
+                    }
+
+                    function watch(useDetector) {
+                        var canvas = document.createElement('canvas');
+                        var context = canvas.getContext('2d', { willReadFrequently: true });
+                        var detector = useDetector ? new BarcodeDetector({ formats: ['qr_code'] }) : null;
+
+                        function later() {
+                            if (!sent) {
+                                setTimeout(tick, 200);
+                            }
+                        }
+
+                        function tick() {
+                            if (sent || video.readyState &lt; 2) {
+                                later();
+                                return;
+                            }
+                            if (detector) {
+                                detector.detect(video).then(function (codes) {
+                                    if (codes.length &amp;&amp; codes[0].rawValue) {
+                                        submit(codes[0].rawValue);
+                                    } else {
+                                        later();
+                                    }
+                                }).catch(function () {
+                                    detector = null;
+                                    later();
+                                });
+                                return;
+                            }
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            var image = context.getImageData(0, 0, canvas.width, canvas.height);
+                            var code = window.jsQR(image.data, image.width, image.height, { inversionAttempts: 'dontInvert' });
+                            if (code &amp;&amp; code.data) {
+                                submit(code.data);
+                            } else {
+                                later();
+                            }
+                        }
+
+                        tick();
+                    }
+
+                    navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: 'environment' } },
+                        audio: false
+                    }).then(function (stream) {
+                        video.srcObject = stream;
+                        return video.play();
+                    }).then(function () {
+                        status.textContent = 'Caméra ouverte. Présentez le QR.';
+                        watch(typeof BarcodeDetector === 'function');
+                    }).catch(function () {
+                        status.textContent = 'Caméra refusée. Autorisez-la dans le navigateur, ou saisissez le QR dans le champ.';
+                    });
+                })();
+            </script>
+        </t>
+    </template>
+</odoo>

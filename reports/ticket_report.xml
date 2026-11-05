@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_transport_ticket" model="report.paperformat">
+        <field name="name">Billet transport</field>
+        <field name="format">A5</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <template id="report_font">
+        <style>
+            body, body * {
+                font-family: Arial, Helvetica, sans-serif !important;
+                letter-spacing: 0 !important;
+            }
+        </style>
+    </template>
+
+    <template id="report_ticket_document">
+        <div class="page" style="font-family: Arial, Helvetica, sans-serif; color: #1c1c1c;">
+            <t t-call="transport.report_font"/>
+            <p style="margin: 0; text-transform: uppercase; color: #0c6e68; font-size: 12px;">
+                <span t-out="doc.env.company.name"/>
+            </p>
+            <h2 style="margin: 6px 0 12px;">Billet</h2>
+            <p style="font-size: 18px; margin: 0 0 8px;">
+                <strong t-out="doc.booking_id.passenger_name"/>
+            </p>
+            <p style="margin: 0 0 8px;">
+                Référence : <strong t-out="doc.name"/><br/>
+                Ligne : <span t-out="doc.booking_id.departure_id.line_id.name"/><br/>
+                Départ : <span t-field="doc.booking_id.departure_id.effective_datetime"/><br/>
+                <t t-if="doc.booking_id.departure_id.delay_minutes">
+                    Retard : <span t-out="doc.booking_id.departure_id.delay_minutes"/> min
+                    <t t-if="doc.booking_id.departure_id.delay_reason">
+                        — <span t-out="doc.booking_id.departure_id.delay_reason"/>
+                    </t><br/>
+                </t>
+                Montée : <span t-out="doc.booking_id.origin_stop_id.name"/>
+                — <span t-out="doc.booking_id.departure_id.passage_label(doc.booking_id.origin_stop_id)"/><br/>
+                Descente : <span t-out="doc.booking_id.destination_stop_id.name"/>
+                — <span t-out="doc.booking_id.departure_id.passage_label(doc.booking_id.destination_stop_id)"/><br/>
+                <t t-foreach="doc.booking_id.departure_id.passage_rows()" t-as="row">
+                    <span t-out="row['name']"/> : <span t-out="row['hour']"/><br/>
+                </t>
+                Places : <span t-out="doc.booking_id.seat_count"/><br/>
+                Sièges : <strong t-out="doc.booking_id.seat_detail"/>
+            </p>
+            <img t-att-src="doc.qr_src()" style="width: 40mm; height: 40mm;" alt="QR"/>
+            <p style="font-size: 12px;">Présentez ce QR code à la montée.</p>
+        </div>
+    </template>
+
+    <template id="report_ticket">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="transport.report_ticket_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_ticket" model="ir.actions.report">
+        <field name="name">Billet</field>
+        <field name="model">transport.ticket</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">transport.report_ticket</field>
+        <field name="report_file">transport.report_ticket</field>
+        <field name="print_report_name">'Billet_%s' % (object.name)</field>
+        <field name="paperformat_id" ref="paperformat_transport_ticket"/>
+        <field name="binding_model_id" ref="model_transport_ticket"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_manifest_document">
+        <div class="page" style="font-family: Arial, Helvetica, sans-serif; color: #1c1c1c;">
+            <t t-call="transport.report_font"/>
+            <h2>Manifeste <span t-out="doc.name"/></h2>
+            <p>
+                Ligne : <strong t-out="doc.line_id.name"/><br/>
+                Départ : <span t-field="doc.effective_datetime"/><br/>
+                <t t-if="doc.delay_minutes">
+                    Retard : <span t-out="doc.delay_minutes"/> min<br/>
+                </t>
+                Bus : <span t-out="doc.vehicle_id.display_name or ''"/><br/>
+                Chauffeur : <span t-out="doc.driver_id.name or ''"/>
+            </p>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Siège</th>
+                        <th>Passager</th>
+                        <th>Canal</th>
+                        <th>Montée</th>
+                        <th>Descente</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="doc.manifest_rows()" t-as="row">
+                        <td t-out="row['seat']"/>
+                        <td t-out="row['name']"/>
+                        <td t-out="row['channel']"/>
+                        <td t-out="row['origin']"/>
+                        <td t-out="row['destination']"/>
+                        <td t-out="row['state']"/>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+
+    <template id="report_manifest">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="transport.report_manifest_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_manifest" model="ir.actions.report">
+        <field name="name">Manifeste</field>
+        <field name="model">transport.departure</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">transport.report_manifest</field>
+        <field name="report_file">transport.report_manifest</field>
+        <field name="print_report_name">'Manifeste_%s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_transport_departure"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_receipt_document">
+        <div class="page" style="font-family: Arial, Helvetica, sans-serif; color: #1c1c1c;">
+            <t t-call="transport.report_font"/>
+            <p style="margin: 0; text-transform: uppercase; color: #0c6e68; font-size: 12px;">
+                <span t-out="doc.env.company.name"/>
+            </p>
+            <h2 style="margin: 6px 0 12px;">Reçu</h2>
+            <p style="font-size: 18px; margin: 0 0 8px;">
+                <strong t-out="doc.booking_id.passenger_name"/>
+            </p>
+            <p style="margin: 0 0 8px;">
+                Reçu : <strong t-out="doc.booking_id.payment_reference"/><br/>
+                Mode : <span t-out="doc.booking_id.payment_method_label()"/><br/>
+                Billet : <strong t-out="doc.name"/><br/>
+                Ligne : <span t-out="doc.booking_id.departure_id.line_id.name"/><br/>
+                Départ : <span t-field="doc.booking_id.departure_id.effective_datetime"/><br/>
+                <t t-if="doc.booking_id.departure_id.delay_minutes">
+                    Retard : <span t-out="doc.booking_id.departure_id.delay_minutes"/> min<br/>
+                </t>
+                Montée : <span t-out="doc.booking_id.origin_stop_id.name"/>
+                — <span t-out="doc.booking_id.departure_id.passage_label(doc.booking_id.origin_stop_id)"/><br/>
+                Descente : <span t-out="doc.booking_id.destination_stop_id.name"/>
+                — <span t-out="doc.booking_id.departure_id.passage_label(doc.booking_id.destination_stop_id)"/><br/>
+                <t t-foreach="doc.booking_id.departure_id.passage_rows()" t-as="row">
+                    <span t-out="row['name']"/> : <span t-out="row['hour']"/><br/>
+                </t>
+                Places : <span t-out="doc.booking_id.seat_count"/><br/>
+                Sièges : <strong t-out="doc.booking_id.seat_detail"/><br/>
+                Montant payé : <strong t-out="doc.booking_id.amount_total"/> DZD<br/>
+                <span t-out="doc.booking_id.cancel_rule_label()"/>
+            </p>
+            <img t-att-src="doc.qr_src()" style="width: 40mm; height: 40mm;" alt="QR"/>
+            <p style="font-size: 12px;">Ce reçu confirme le billet. Présentez le QR code à la montée.</p>
+        </div>
+    </template>
+
+    <template id="report_receipt">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="transport.report_receipt_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_receipt" model="ir.actions.report">
+        <field name="name">Reçu</field>
+        <field name="model">transport.ticket</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">transport.report_receipt</field>
+        <field name="report_file">transport.report_receipt</field>
+        <field name="print_report_name">'Recu_%s' % (object.booking_id.payment_reference or object.name)</field>
+        <field name="paperformat_id" ref="paperformat_transport_ticket"/>
+    </record>
+</odoo>

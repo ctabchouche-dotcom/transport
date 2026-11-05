@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_transport_departure_list" model="ir.ui.view">
+        <field name="name">transport.departure.list</field>
+        <field name="model">transport.departure</field>
+        <field name="arch" type="xml">
+            <list string="Départs">
+                <header>
+                    <button name="action_auto_assign" type="object" string="Affecter automatiquement"/>
+                </header>
+                <field name="name"/>
+                <field name="line_id"/>
+                <field name="service_date"/>
+                <field name="departure_datetime"/>
+                <field name="vehicle_id"/>
+                <field name="driver_id"/>
+                <field name="seat_capacity"/>
+                <field name="seats_sold"/>
+                <field name="amount_net"/>
+                <field name="amount_margin"/>
+                <field name="seats_taken"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('planned', 'assigned')"
+                       decoration-warning="state == 'boarding'"
+                       decoration-success="state in ('in_progress', 'done')"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_transport_departure_form" model="ir.ui.view">
+        <field name="name">transport.departure.form</field>
+        <field name="model">transport.departure</field>
+        <field name="arch" type="xml">
+            <form string="Départ">
+                <header>
+                    <button name="action_auto_assign" type="object" string="Affecter automatiquement"
+                            class="oe_highlight" invisible="state != 'planned'"/>
+                    <button name="action_assign" type="object" string="Affecter"
+                            invisible="state != 'planned'"/>
+                    <button name="action_open_boarding" type="object" string="Ouvrir l'embarquement" class="oe_highlight"
+                            invisible="state != 'assigned'"/>
+                    <button name="action_open_scan" type="object" string="Scanner un billet"
+                            invisible="state not in ('boarding', 'in_progress')"/>
+                    <button name="action_open_tracking" type="object" string="Suivi GPS"
+                            invisible="state == 'cancelled'"/>
+                    <button name="action_open_delay" type="object" string="Retard"
+                            invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_open_swap" type="object" string="Remplacer le bus"
+                            invisible="state not in ('assigned', 'boarding')"/>
+                    <button name="action_start" type="object" string="Mettre en course" class="oe_highlight"
+                            invisible="state != 'boarding'"/>
+                    <button name="action_done" type="object" string="Terminer" class="oe_highlight"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" type="object" string="Annuler"
+                            invisible="state not in ('planned', 'assigned', 'boarding')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="planned,assigned,boarding,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="line_id" readonly="id" options="{'no_create': True}"/>
+                            <field name="departure_datetime" readonly="state != 'planned'"/>
+                            <field name="delay_minutes" readonly="1"/>
+                            <field name="effective_datetime" invisible="not delay_minutes"/>
+                            <field name="delay_reason" readonly="1" invisible="not delay_minutes"/>
+                            <field name="schedule_id" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="route_length"/>
+                            <field name="drive_hours"/>
+                            <field name="vehicle_id" readonly="state in ('in_progress', 'done', 'cancelled')"
+                                   options="{'no_create': True}"/>
+                            <field name="device_position_url" widget="url" invisible="not vehicle_id"/>
+                            <field name="device_scan_url" widget="url" invisible="not vehicle_id"/>
+                            <field name="driver_id" readonly="state in ('in_progress', 'done', 'cancelled')"
+                                   options="{'no_create': True}"/>
+                            <field name="seat_capacity" readonly="state in ('in_progress', 'done', 'cancelled')"/>
+                            <field name="seat_layout_label"/>
+                            <field name="b2b_seat_reserve" readonly="state in ('in_progress', 'done', 'cancelled')"/>
+                            <field name="release_hours" readonly="state in ('in_progress', 'done', 'cancelled')"/>
+                            <field name="release_datetime"/>
+                            <field name="seats_taken"/>
+                            <field name="last_tracked_at"/>
+                            <field name="last_latitude" invisible="not last_tracked_at"/>
+                            <field name="last_longitude" invisible="not last_tracked_at"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tronçons" name="legs">
+                            <field name="leg_ids" readonly="1">
+                                <list>
+                                    <field name="origin_stop_id"/>
+                                    <field name="destination_stop_id"/>
+                                    <field name="seat_capacity"/>
+                                    <field name="seats_taken"/>
+                                    <field name="fill_percent"/>
+                                    <field name="seats_b2c_free"/>
+                                    <field name="seats_b2b_free"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Résultat" name="result">
+                            <group>
+                                <group>
+                                    <field name="seats_sold"/>
+                                    <field name="seats_taken"/>
+                                </group>
+                                <group>
+                                    <field name="amount_collected"/>
+                                    <field name="amount_refunded"/>
+                                    <field name="amount_net"/>
+                                    <field name="fuel_amount" readonly="state == 'cancelled'"/>
+                                    <field name="toll_amount" readonly="state == 'cancelled'"/>
+                                    <field name="driver_amount" readonly="state == 'cancelled'"/>
+                                    <field name="amount_cost"/>
+                                    <field name="amount_margin"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Réservations" name="bookings">
+                            <field name="booking_ids" readonly="state not in ('planned', 'assigned', 'boarding')">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="passenger_name"/>
+                                    <field name="channel"/>
+                                    <field name="origin_stop_id"/>
+                                    <field name="destination_stop_id"/>
+                                    <field name="seat_count"/>
+                                    <field name="paid"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Liste d'attente" name="waitlist">
+                            <field name="waitlist_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="passenger_name"/>
+                                    <field name="phone"/>
+                                    <field name="seat_count"/>
+                                    <field name="origin_stop_id"/>
+                                    <field name="destination_stop_id"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="offer_until"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Sécurité" name="checks">
+                            <field name="check_ids" readonly="state in ('done', 'cancelled')">
+                                <list create="0" delete="0" editable="bottom">
+                                    <field name="name"/>
+                                    <field name="critical"/>
+                                    <field name="result" readonly="parent.state not in ('boarding', 'in_progress')"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_transport_departure_search" model="ir.ui.view">
+        <field name="name">transport.departure.search</field>
+        <field name="model">transport.departure</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="line_id"/>
+                <field name="vehicle_id"/>
+                <field name="driver_id"/>
+                <filter name="today" string="Aujourd'hui" domain="[('service_date', '=', context_today())]"/>
+                <filter name="upcoming" string="À venir" domain="[('service_date', '>', context_today())]"/>
+                <filter name="archive" string="Archivés" domain="[('service_date', '&lt;', context_today())]"/>
+                <separator/>
+                <filter name="in_progress" string="En course" domain="[('state', '=', 'in_progress')]"/>
+                <separator/>
+                <filter name="group_line" string="Ligne" context="{'group_by': 'line_id'}"/>
+                <filter name="group_state" string="Statut" context="{'group_by': 'state'}"/>
+                <filter name="group_day" string="Jour" context="{'group_by': 'service_date'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_transport_departure" model="ir.actions.act_window">
+        <field name="name">Aujourd'hui</field>
+        <field name="res_model">transport.departure</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('service_date', '=', context_today())]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_transport_departure_upcoming" model="ir.actions.act_window">
+        <field name="name">À venir</field>
+        <field name="res_model">transport.departure</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('service_date', '&gt;', context_today())]</field>
+    </record>
+
+    <record id="action_transport_departure_archive" model="ir.actions.act_window">
+        <field name="name">Archivés</field>
+        <field name="res_model">transport.departure</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('service_date', '&lt;', context_today())]</field>
+    </record>
+</odoo>

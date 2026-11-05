@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="email_template_ticket" model="mail.template">
+            <field name="name">Transport : billet électronique</field>
+            <field name="model_id" ref="model_transport_ticket"/>
+            <field name="subject">Votre billet {{ object.name }}</field>
+            <field name="email_from">{{ object.env.company.email_formatted or user.email_formatted }}</field>
+            <field name="email_to">{{ object.booking_id.partner_id.email }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #222;">
+                    <p>Bonjour <strong t-out="object.booking_id.passenger_name or ''">Passager</strong>,</p>
+                    <p>
+                        Votre place est confirmée sur
+                        <strong t-out="object.booking_id.departure_id.line_id.name or ''">la ligne</strong>,
+                        départ <strong t-field="object.booking_id.departure_id.departure_datetime"/>.
+                    </p>
+                    <p>
+                        Montée : <strong t-out="object.booking_id.origin_stop_id.name or ''">Départ</strong><br/>
+                        Descente : <strong t-out="object.booking_id.destination_stop_id.name or ''">Arrivée</strong><br/>
+                        Places : <strong t-out="object.booking_id.seat_count or 1">1</strong>
+                    </p>
+                    <p>Présentez le QR code du billet joint au chauffeur.</p>
+                </div>
+            </field>
+        </record>
+
+        <record id="email_template_delay" model="mail.template">
+            <field name="name">Transport : retard de départ</field>
+            <field name="model_id" ref="model_transport_booking"/>
+            <field name="subject">{{ 'Retard' if object.departure_id.delay_minutes else 'Horaire rétabli' }} — {{ object.departure_id.line_id.name }}</field>
+            <field name="email_from">{{ object.env.company.email_formatted or user.email_formatted }}</field>
+            <field name="email_to">{{ object.partner_id.email }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #222;">
+                    <p>Bonjour <strong t-out="object.passenger_name or ''">Passager</strong>,</p>
+                    <t t-if="object.departure_id.delay_minutes">
+                        <p>
+                            Le départ <strong t-out="object.departure_id.line_id.name or ''">la ligne</strong>
+                            prévu à <strong t-field="object.departure_id.departure_datetime"/>
+                            a <strong t-out="object.departure_id.delay_minutes">20</strong> minutes de retard.
+                        </p>
+                        <p>
+                            Nouveau départ : <strong t-field="object.departure_id.effective_datetime"/>.
+                            <t t-if="object.departure_id.delay_reason">
+                                Motif : <strong t-out="object.departure_id.delay_reason">Circulation</strong>.
+                            </t>
+                        </p>
+                    </t>
+                    <t t-else="">
+                        <p>
+                            Le retard est annulé. Votre départ
+                            <strong t-out="object.departure_id.line_id.name or ''">la ligne</strong>
+                            revient à <strong t-field="object.departure_id.departure_datetime"/>.
+                        </p>
+                    </t>
+                    <p>
+                        Montée : <strong t-out="object.origin_stop_id.name or ''">Départ</strong><br/>
+                        Descente : <strong t-out="object.destination_stop_id.name or ''">Arrivée</strong><br/>
+                        Sièges : <strong t-out="object.seat_label or ''">1</strong>
+                    </p>
+                </div>
+            </field>
+        </record>
+
+        <record id="email_template_rebook" model="mail.template">
+            <field name="name">Transport : billet reporté</field>
+            <field name="model_id" ref="model_transport_booking"/>
+            <field name="subject">Billet reporté {{ object.name }}</field>
+            <field name="email_from">{{ object.env.company.email_formatted or user.email_formatted }}</field>
+            <field name="email_to">{{ object.partner_id.email }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #222;">
+                    <p>Bonjour <strong t-out="object.passenger_name or ''">Passager</strong>,</p>
+                    <p>
+                        Votre billet <strong t-out="object.name or ''">BILLET</strong>
+                        est reporté sur <strong t-out="object.departure_id.line_id.name or ''">la ligne</strong>.
+                    </p>
+                    <p>
+                        Nouveau départ : <strong t-field="object.departure_id.effective_datetime"/><br/>
+                        Montée : <strong t-out="object.origin_stop_id.name or ''">Départ</strong><br/>
+                        Descente : <strong t-out="object.destination_stop_id.name or ''">Arrivée</strong><br/>
+                        Sièges : <strong t-out="object.seat_label or ''">1</strong>
+                    </p>
+                    <p>Le prix déjà payé reste le même. Présentez le même QR code à la montée.</p>
+                </div>
+            </field>
+        </record>
+
+        <record id="email_template_waitlist" model="mail.template">
+            <field name="name">Transport : place libérée</field>
+            <field name="model_id" ref="model_transport_waitlist"/>
+            <field name="subject">Une place s'est libérée — {{ object.departure_id.line_id.name }}</field>
+            <field name="email_from">{{ object.env.company.email_formatted or user.email_formatted }}</field>
+            <field name="email_to">{{ object.email }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #222;">
+                    <p>Bonjour <strong t-out="object.passenger_name or ''">Passager</strong>,</p>
+                    <p>
+                        Une place s'est libérée sur
+                        <strong t-out="object.departure_id.line_id.name or ''">la ligne</strong>,
+                        de <strong t-out="object.origin_stop_id.name or ''">la montée</strong>
+                        à <strong t-out="object.destination_stop_id.name or ''">la descente</strong>.
+                    </p>
+                    <p>
+                        Elle est tenue pour vous jusqu'à <strong t-field="object.offer_until"/>.
+                        Prenez-la avec la référence <strong t-out="object.name or ''">ATT</strong>
+                        et votre téléphone, ou ouvrez ce lien :
+                    </p>
+                    <p><a t-att-href="object.claim_url()"><t t-out="object.claim_url()">lien</t></a></p>
+                    <p>La place n'est confirmée qu'au moment où vous la prenez, puis la payez.</p>
+                </div>
+            </field>
+        </record>
+
+        <record id="email_template_closure" model="mail.template">
+            <field name="name">Transport : journée fermée</field>
+            <field name="model_id" ref="model_transport_booking"/>
+            <field name="subject">Départ annulé — {{ object.departure_id.line_id.name }}</field>
+            <field name="email_from">{{ object.env.company.email_formatted or user.email_formatted }}</field>
+            <field name="email_to">{{ object.partner_id.email }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #222;">
+                    <p>Bonjour <strong t-out="object.passenger_name or ''">Passager</strong>,</p>
+                    <p>
+                        Le départ du <strong t-field="object.departure_id.effective_datetime"/>
+                        sur <strong t-out="object.departure_id.line_id.name or ''">la ligne</strong>
+                        est annulé.
+                    </p>
+                    <p t-if="object.closure_reason">
+                        Motif : <strong t-out="object.closure_reason">Fête</strong>.
+                    </p>
+                    <p t-if="object.paid">
+                        Le montant payé est remboursé : <strong t-out="object.refund_amount">0</strong> DZD.
+                    </p>
+                    <p>Votre billet <strong t-out="object.name or ''">BILLET</strong> ne peut plus être utilisé.</p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>
